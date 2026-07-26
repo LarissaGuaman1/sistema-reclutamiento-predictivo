@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  tests:
+    name: Pruebas unitarias y generación del workflow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: npm test (scoring + extracción de IA)
+        run: npm test
+
+      - name: Regenerar workflow-reclutamiento.json
+        run: npm run generar-workflow
+
+      - name: Verificar que el workflow generado sea JSON válido con 23 nodos
+        run: |
+          node -e "
+            const wf = require('./workflow-reclutamiento.json');
+            if (!Array.isArray(wf.nodes) || wf.nodes.length !== 23) {
+              console.error('Se esperaban 23 nodos, se encontraron ' + (wf.nodes && wf.nodes.length));
+              process.exit(1);
+            }
+            console.log('workflow-reclutamiento.json OK: ' + wf.nodes.length + ' nodos.');
+          "
+
+  docker:
+    name: Levantar el entorno Docker (Postgres + n8n + Mailpit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear .env de prueba a partir de .env.example
+        run: cp .env.example .env
+
+      - name: Validar sintaxis de docker-compose.yml
+        run: docker compose config
+
+      - name: Levantar los contenedores
+        run: docker compose up -d
+
+      - name: Esperar a que Postgres esté healthy
+        run: |
+          timeout 60 bash -c '
+            until [ "$(docker inspect -f "{{.State.Health.Status}}" reclutamiento_postgres)" = "healthy" ]; do
+              sleep 2
+            done
+          '
+
+      - name: Esperar a que n8n responda (GET /healthz)
+        run: |
+          timeout 90 bash -c '
+            until curl -sf http://localhost:5678/healthz > /dev/null; do
+              sleep 3
+            done
+          '
+
+      - name: Verificar que Mailpit responda
+        run: curl -sf http://localhost:8025 > /dev/null
+
+      - name: Mostrar logs si algo falló
+        if: failure()
+        run: docker compose logs
+
+      - name: Apagar y limpiar contenedores
+        if: always()
+        run: docker compose down -v
