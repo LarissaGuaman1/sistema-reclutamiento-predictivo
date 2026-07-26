@@ -1,0 +1,119 @@
+{
+  "puestos": [
+    {
+      "titulo": "Desarrollador Backend Node.js",
+
+      "skills_obligatorias": [
+        { "nombre": "Node.js", "peso": 15, "sinonimos": ["NodeJS", "Node"] },
+        { "nombre": "JavaScript", "peso": 10, "sinonimos": ["JS", "ECMAScript"] },
+        { "nombre": "SQL", "peso": 5, "sinonimos": ["PostgreSQL", "MySQL", "SQLite", "SQL Server", "Oracle", "MariaDB"] }
+      ],
+
+      "skills_deseables": [
+        { "nombre": "Docker", "peso": 5, "sinonimos": ["Docker Engine", "Docker Compose"] },
+        { "nombre": "TypeScript", "peso": 3, "sinonimos": ["TS"] },
+        { "nombre": "AWS", "peso": 2, "sinonimos": ["Amazon Web Services", "Amazon AWS"] }
+      ],
+
+      "experiencia_minima_anios": 2,
+      "experiencia_ideal_anios": 5,
+
+      "nivel_educativo_requerido": "tercer_nivel",
+
+      "idiomas_requeridos": [
+        { "idioma": "Inglés", "nivel_minimo": "B2" }
+      ],
+
+      "umbrales": {
+        "entrevista": 85,
+        "revision": 50
+      }
+    },
+    {
+      "titulo": "Desarrollador Frontend React",
+
+      "skills_obligatorias": [
+        { "nombre": "React", "peso": 15, "sinonimos": ["ReactJS", "React.js"] },
+        { "nombre": "JavaScript", "peso": 10, "sinonimos": ["JS", "ECMAScript"] },
+        { "nombre": "CSS", "peso": 5, "sinonimos": ["CSS3", "Hojas de estilo"] }
+      ],
+
+      "skills_deseables": [
+        { "nombre": "TypeScript", "peso": 5, "sinonimos": ["TS"] },
+        { "nombre": "Redux", "peso": 3, "sinonimos": ["Redux Toolkit", "RTK"] },
+        { "nombre": "Next.js", "peso": 2, "sinonimos": ["NextJS"] }
+      ],
+
+      "experiencia_minima_anios": 1,
+      "experiencia_ideal_anios": 4,
+
+      "nivel_educativo_requerido": "tercer_nivel",
+
+      "idiomas_requeridos": [
+        { "idioma": "Inglés", "nivel_minimo": "B1" }
+      ],
+
+      "umbrales": {
+        "entrevista": 85,
+        "revision": 50
+      }
+    },
+    {
+      "titulo": "Desarrollador Móvil Flutter",
+
+      "skills_obligatorias": [
+        { "nombre": "Flutter", "peso": 18 },
+        { "nombre": "Dart", "peso": 12 }
+      ],
+
+      "skills_deseables": [
+        { "nombre": "Firebase", "peso": 4, "sinonimos": ["Google Firebase", "Cloud Firestore"] },
+        { "nombre": "Git", "peso": 3, "sinonimos": ["GitHub", "GitLab"] },
+        { "nombre": "APIs REST", "peso": 3, "sinonimos": ["REST API", "APIs RESTful", "Consumo de APIs REST"] }
+      ],
+
+      "experiencia_minima_anios": 1,
+      "experiencia_ideal_anios": 4,
+
+      "nivel_educativo_requerido": "tercer_nivel",
+
+      "idiomas_requeridos": [
+        { "idioma": "Inglés", "nivel_minimo": "B1" }
+      ],
+
+      "umbrales": {
+        "entrevista": 85,
+        "revision": 50
+      }
+    },
+    {
+      "titulo": "Analista de Datos Junior",
+
+      "skills_obligatorias": [
+        { "nombre": "SQL", "peso": 15, "sinonimos": ["PostgreSQL", "MySQL", "SQLite", "SQL Server", "Oracle", "MariaDB"] },
+        { "nombre": "Excel", "peso": 10, "sinonimos": ["Microsoft Excel", "Hojas de cálculo"] },
+        { "nombre": "Python", "peso": 5, "sinonimos": ["Python3"] }
+      ],
+
+      "skills_deseables": [
+        { "nombre": "Power BI", "peso": 5, "sinonimos": ["PowerBI"] },
+        { "nombre": "Tableau", "peso": 3 },
+        { "nombre": "Pandas", "peso": 2, "sinonimos": ["Python Pandas"] }
+      ],
+
+      "experiencia_minima_anios": 0,
+      "experiencia_ideal_anios": 2,
+
+      "nivel_educativo_requerido": "tecnico_tecnologo",
+
+      "idiomas_requeridos": [
+        { "idioma": "Inglés", "nivel_minimo": "B1" }
+      ],
+
+      "umbrales": {
+        "entrevista": 85,
+        "revision": 50
+      }
+    }
+  ]
+}

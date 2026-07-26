@@ -1,0 +1,22 @@
+# Variables de entorno con datos sensibles (usar .env.example como plantilla)
+.env
+.env.*
+!.env.example
+
+# Dependencias
+node_modules/
+
+# Datos persistentes de Docker (Postgres, n8n, Mailpit)
+postgres-data/
+n8n-data/
+mailpit-data/
+*.sqlite
+
+# Config local del agente
+.claude/
+
+# Logs y temporales del SO
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

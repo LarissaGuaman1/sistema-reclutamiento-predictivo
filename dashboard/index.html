@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel de Resultados - Reclutamiento Predictivo</title>
+<!--
+  ============================================================================
+  PANEL DE RESULTADOS (dashboard)
+  ============================================================================
+  Sistema Inteligente de Reclutamiento Predictivo - Trabajo de titulación.
+
+  Página HTML de una sola vista, sin frameworks ni dependencias externas
+  (nada de CDN, nada de build step). Lee los datos desde "candidatos-data.js"
+  mediante una etiqueta <script src="...">, NO mediante fetch(): así la
+  página funciona abriéndola directamente con doble clic en el explorador de
+  archivos (fetch() sobre file:// suele bloquearse por CORS; un <script> no
+  tiene esa restricción).
+
+  "candidatos-data.js" se genera automáticamente con "npm run demo" (ver
+  scripts/demo.js), a partir del mismo pipeline de validación + scoring que
+  ya se prueba con "node tests/probar-scoring.js". En un despliegue real,
+  este archivo se reemplazaría por una consulta a la base de datos de Notion
+  (ver README.md, sección "Panel de resultados").
+  ============================================================================
+-->
+<style>
+  :root {
+    --lila: #C8B6E2;
+    --celeste: #A8DADC;
+    --rosa: #F7C8D8;
+    --blanco: #FFFFFF;
+    --texto-fuerte: #3A3352;
+    --texto-suave: #6B6480;
+    --fondo: #FBF9FE;
+    --borde: #EDE7F6;
+    --sombra: 0 4px 16px rgba(120, 100, 160, 0.12);
+    --sombra-hover: 0 8px 24px rgba(120, 100, 160, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, var(--fondo) 0%, #FFFFFF 320px);
+    color: var(--texto-fuerte);
+    font-family: 'Segoe UI Rounded', 'SF Rounded', Nunito, 'Segoe UI', ui-rounded, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .contenedor {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Encabezado                                                             */
+  /* ---------------------------------------------------------------------- */
+  header.panel-header {
+    background: linear-gradient(135deg, var(--lila) 0%, var(--celeste) 100%);
+    border-radius: 24px;
+    padding: 28px 32px;
+    box-shadow: var(--sombra);
+    color: #2E2A45;
+    margin-bottom: 24px;
+  }
+
+  header.panel-header h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  header.panel-header p.subtitulo {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+  }
+
+  .stats-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .stat-pill {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    backdrop-filter: blur(2px);
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Controles                                                              */
+  /* ---------------------------------------------------------------------- */
+  .controles {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  #buscador {
+    flex: 1;
+    min-width: 220px;
+    border: 2px solid var(--borde);
+    border-radius: 16px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--texto-fuerte);
+    background: var(--blanco);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  #buscador:focus { border-color: var(--lila); }
+
+  /* ---------------------------------------------------------------------- */
+  /* Tarjetas de candidatos                                                 */
+  /* ---------------------------------------------------------------------- */
+  .lista-candidatos {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tarjeta {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    box-shadow: var(--sombra);
+    padding: 18px 22px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .tarjeta:hover {
+    box-shadow: var(--sombra-hover);
+    transform: translateY(-1px);
+  }
+
+  .tarjeta-fila-principal {
+    display: grid;
+    grid-template-columns: 40px 1.6fr 1fr 110px 140px 32px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  @media (max-width: 720px) {
+    .tarjeta-fila-principal {
+      grid-template-columns: 32px 1fr;
+      row-gap: 8px;
+    }
+    .col-puesto, .col-estado { grid-column: 2; }
+  }
+
+  .col-rango {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--texto-suave);
+  }
+
+  .col-nombre { min-width: 0; }
+  .col-nombre .nombre {
+    font-weight: 800;
+    font-size: 1.02rem;
+    color: var(--texto-fuerte);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .col-nombre .email {
+    font-size: 0.8rem;
+    color: var(--texto-suave);
+  }
+
+  .col-puesto {
+    font-size: 0.88rem;
+    color: var(--texto-suave);
+  }
+
+  .col-score { text-align: center; }
+  .col-score .numero {
+    font-weight: 800;
+    font-size: 1.15rem;
+  }
+  .col-score .barra-fondo {
+    margin-top: 6px;
+    background: var(--borde);
+    border-radius: 999px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .col-score .barra-relleno {
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  .col-estado { text-align: center; }
+  .badge-estado {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .badge-entrevista { background: var(--celeste); color: #1B4F52; }
+  .badge-revision { background: var(--lila); color: #4A3E70; }
+  .badge-rechazo { background: var(--rosa); color: #7A2E4A; }
+  .badge-revision_manual { background: #EDE7F6; color: #6B6480; border: 1px dashed #B9AED6; }
+
+  .col-expandir {
+    justify-self: end;
+    cursor: pointer;
+    border: none;
+    background: var(--fondo);
+    color: var(--texto-suave);
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .col-expandir:hover { background: var(--borde); }
+  .tarjeta.abierta .col-expandir { transform: rotate(180deg); background: var(--lila); color: white; }
+
+  /* ---------------------------------------------------------------------- */
+  /* Desglose expandible                                                    */
+  /* ---------------------------------------------------------------------- */
+  .desglose {
+    display: none;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--borde);
+  }
+  .tarjeta.abierta .desglose { display: block; }
+
+  .desglose-categorias {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .categoria-item .etiqueta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    margin-bottom: 4px;
+  }
+  .categoria-item .barra-fondo {
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .categoria-item .barra-relleno {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--celeste), var(--lila));
+  }
+
+  .justificaciones {
+    background: var(--fondo);
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .justificaciones h4 {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--texto-suave);
+  }
+  .justificaciones ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .justificaciones li { color: var(--texto-fuerte); }
+
+  /* ---------------------------------------------------------------------- */
+  /* Estado vacío / pie de página                                          */
+  /* ---------------------------------------------------------------------- */
+  .estado-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-suave);
+    background: var(--blanco);
+    border-radius: 20px;
+    border: 1px dashed var(--borde);
+  }
+  .estado-vacio code {
+    background: var(--fondo);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  footer.nota {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+  }
+</style>
+</head>
+<body>
+  <div class="contenedor">
+    <header class="panel-header">
+      <h1>Panel de Resultados</h1>
+      <p class="subtitulo" id="subtitulo-puesto">Sistema Inteligente de Reclutamiento Predictivo</p>
+      <div class="stats-fila" id="stats-fila"></div>
+    </header>
+
+    <div class="controles">
+      <input type="text" id="buscador" placeholder="Buscar candidato por nombre..." autocomplete="off" />
+    </div>
+
+    <div class="lista-candidatos" id="lista-candidatos"></div>
+    <div class="estado-vacio" id="estado-vacio" style="display:none;"></div>
+
+    <footer class="nota">
+      Datos generados por <code>npm run demo</code> a partir de
+      <code>tests/candidatos-ejemplo.json</code>. En producción, este panel
+      debería leer directamente de la base de datos de candidatos en Notion.
+    </footer>
+  </div>
+
+  <!--
+    Datos del panel. Si este archivo no existe todavía, ejecutar
+    "npm run demo" desde la raíz del proyecto (ver README.md).
+  -->
+  <script src="candidatos-data.js"></script>
+
+  <script>
+    // ==========================================================================
+    // Lógica de renderizado del panel (vanilla JS, sin dependencias)
+    // ==========================================================================
+
+    const CLASIFICACION_A_CLASE = {
+      ENTREVISTA: 'badge-entrevista',
+      REVISION: 'badge-revision',
+      RECHAZO: 'badge-rechazo',
+      REVISION_MANUAL: 'badge-revision_manual'
+    };
+
+    const CLASIFICACION_A_COLOR_BARRA = {
+      ENTREVISTA: 'linear-gradient(90deg, #A8DADC, #8FC6C9)',
+      REVISION: 'linear-gradient(90deg, #C8B6E2, #B49FD6)',
+      RECHAZO: 'linear-gradient(90deg, #F7C8D8, #EFA9C2)',
+      REVISION_MANUAL: 'linear-gradient(90deg, #D9D2E9, #C4B9DD)'
+    };
+
+    const NOMBRES_CATEGORIA = {
+      skills: 'Skills técnicas',
+      experiencia: 'Experiencia',
+      educacion: 'Educación',
+      idiomas: 'Idiomas'
+    };
+
+    function escaparHtml(texto) {
+      const div = document.createElement('div');
+      div.textContent = texto === null || texto === undefined ? '' : String(texto);
+      return div.innerHTML;
+    }
+
+    function construirTarjeta(candidato, indice) {
+      const clasificacion = candidato.clasificacion || 'REVISION_MANUAL';
+      const claseBadge = CLASIFICACION_A_CLASE[clasificacion] || CLASIFICACION_A_CLASE.REVISION_MANUAL;
+      const colorBarra = CLASIFICACION_A_COLOR_BARRA[clasificacion] || CLASIFICACION_A_COLOR_BARRA.REVISION_MANUAL;
+      const scoreTexto = typeof candidato.score_total === 'number' ? candidato.score_total.toFixed(2).replace(/\.00$/, '') : '—';
+      const scorePorcentaje = typeof candidato.score_total === 'number' ? Math.max(0, Math.min(100, candidato.score_total)) : 0;
+
+      const tarjeta = document.createElement('div');
+      tarjeta.className = 'tarjeta';
+      tarjeta.dataset.nombre = (candidato.nombre || '').toLowerCase();
+
+      const desglose = candidato.desglose || {};
+      const categoriasHtml = Object.keys(NOMBRES_CATEGORIA)
+        .map((clave) => {
+          const cat = desglose[clave] || { puntos: 0, maximo: 0 };
+          const porcentaje = cat.maximo > 0 ? Math.round((cat.puntos / cat.maximo) * 100) : 0;
+          return `
+            <div class="categoria-item">
+              <div class="etiqueta">
+                <span>${NOMBRES_CATEGORIA[clave]}</span>
+                <span>${cat.puntos}/${cat.maximo}</span>
+              </div>
+              <div class="barra-fondo">
+                <div class="barra-relleno" style="width:${porcentaje}%; background:${colorBarra};"></div>
+              </div>
+            </div>`;
+        })
+        .join('');
+
+      const justificacionesHtml = (candidato.justificaciones || [])
+        .map((j) => `<li>${escaparHtml(j)}</li>`)
+        .join('');
+
+      tarjeta.innerHTML = `
+        <div class="tarjeta-fila-principal">
+          <div class="col-rango">#${indice + 1}</div>
+          <div class="col-nombre">
+            <div class="nombre">${escaparHtml(candidato.nombre || '(sin nombre)')}</div>
+            <div class="email">${escaparHtml(candidato.email || 'sin email')}</div>
+          </div>
+          <div class="col-puesto">${escaparHtml(candidato.puesto || '—')}</div>
+          <div class="col-score">
+            <div class="numero">${scoreTexto}<span style="font-size:0.7rem; color:var(--texto-suave);">/100</span></div>
+            <div class="barra-fondo"><div class="barra-relleno" style="width:${scorePorcentaje}%; background:${colorBarra};"></div></div>
+          </div>
+          <div class="col-estado">
+            <span class="badge-estado ${claseBadge}">${escaparHtml(clasificacion)}</span>
+          </div>
+          <button class="col-expandir" type="button" aria-label="Ver desglose" title="Ver desglose">&#9660;</button>
+        </div>
+        <div class="desglose">
+          <div class="desglose-categorias">${categoriasHtml}</div>
+          <div class="justificaciones">
+            <h4>Justificaciones del puntaje</h4>
+            <ul>${justificacionesHtml || '<li>Sin justificaciones registradas.</li>'}</ul>
+          </div>
+        </div>
+      `;
+
+      tarjeta.querySelector('.tarjeta-fila-principal').addEventListener('click', (evento) => {
+        // Evita alternar dos veces si el clic fue directamente sobre el botón
+        // (el listener del botón también burbujea hasta aquí; toggle simple).
+        tarjeta.classList.toggle('abierta');
+      });
+
+      return tarjeta;
+    }
+
+    function construirStats(candidatos) {
+      const total = candidatos.length;
+      const conteo = candidatos.reduce((acc, c) => {
+        const clave = c.clasificacion || 'REVISION_MANUAL';
+        acc[clave] = (acc[clave] || 0) + 1;
+        return acc;
+      }, {});
+
+      const statsFila = document.getElementById('stats-fila');
+      const items = [
+        { etiqueta: `${total} candidatos`, valor: '' },
+        { etiqueta: `${conteo.ENTREVISTA || 0} a entrevista`, valor: '' },
+        { etiqueta: `${conteo.REVISION || 0} en revisión`, valor: '' },
+        { etiqueta: `${conteo.RECHAZO || 0} rechazados`, valor: '' },
+        { etiqueta: `${conteo.REVISION_MANUAL || 0} revisión manual`, valor: '' }
+      ];
+      statsFila.innerHTML = items.map((i) => `<span class="stat-pill">${i.etiqueta}</span>`).join('');
+    }
+
+    function renderizar() {
+      const contenedorLista = document.getElementById('lista-candidatos');
+      const estadoVacio = document.getElementById('estado-vacio');
+      const subtitulo = document.getElementById('subtitulo-puesto');
+
+      const datos = window.CANDIDATOS_DATA;
+      const meta = window.DASHBOARD_META || {};
+
+      if (!Array.isArray(datos) || datos.length === 0) {
+        contenedorLista.style.display = 'none';
+        estadoVacio.style.display = 'block';
+        estadoVacio.innerHTML = `
+          No hay datos para mostrar todavía.<br/><br/>
+          Ejecuta <code>npm run demo</code> desde la raíz del proyecto y vuelve a
+          cargar esta página.
+        `;
+        return;
+      }
+
+      subtitulo.textContent = meta.puesto
+        ? `${meta.puesto} · generado ${meta.generado_en || ''}`
+        : 'Sistema Inteligente de Reclutamiento Predictivo';
+
+      construirStats(datos);
+
+      const ordenados = [...datos].sort((a, b) => (b.score_total || 0) - (a.score_total || 0));
+
+      function pintar(filtro) {
+        contenedorLista.innerHTML = '';
+        const filtrados = ordenados.filter((c) =>
+          (c.nombre || '').toLowerCase().includes(filtro.toLowerCase())
+        );
+        if (filtrados.length === 0) {
+          contenedorLista.style.display = 'none';
+          estadoVacio.style.display = 'block';
+          estadoVacio.innerHTML = 'Ningún candidato coincide con la búsqueda.';
+          return;
+        }
+        contenedorLista.style.display = 'flex';
+        estadoVacio.style.display = 'none';
+        filtrados.forEach((candidato, indice) => {
+          contenedorLista.appendChild(construirTarjeta(candidato, indice));
+        });
+      }
+
+      pintar('');
+
+      document.getElementById('buscador').addEventListener('input', (evento) => {
+        pintar(evento.target.value);
+      });
+    }
+
+    renderizar();
+  </script>
+</body>
+</html>

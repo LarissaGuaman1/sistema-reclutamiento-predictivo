@@ -1,0 +1,18 @@
+{
+  "name": "sistema-reclutamiento-predictivo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema Inteligente de Reclutamiento Predictivo - Trabajo de titulación. Automatización de reclutamiento con n8n auto-hospedado: extracción de CV con IA, scoring explicable y respuesta automatizada.",
+  "scripts": {
+    "test": "node tests/probar-scoring.js && node tests/probar-extraer-respuesta-ia.js",
+    "test:scoring": "node tests/probar-scoring.js",
+    "test:extraccion-ia": "node tests/probar-extraer-respuesta-ia.js",
+    "demo": "node scripts/demo.js",
+    "generar-workflow": "node scripts/generar-workflow.js"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

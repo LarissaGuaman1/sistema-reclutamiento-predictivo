@@ -1,0 +1,6 @@
+{
+  "proveedor": "gemini",
+  "modelo": "gemini-3.5-flash",
+  "url_base": "https://generativelanguage.googleapis.com/v1beta",
+  "temperature": 0
+}

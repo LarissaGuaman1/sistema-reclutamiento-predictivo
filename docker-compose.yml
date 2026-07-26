@@ -1,0 +1,121 @@
+# ==============================================================================
+# Sistema Inteligente de Reclutamiento Predictivo - Trabajo de titulación
+# ==============================================================================
+# Orquesta 3 servicios:
+#   1. postgres  -> base de datos persistente que usa n8n para guardar
+#                   workflows, credenciales y el historial de ejecuciones.
+#   2. n8n       -> motor de automatización auto-hospedado (el corazón del
+#                   sistema: workflow-reclutamiento.json se importa aquí).
+#   3. mailpit   -> servidor SMTP de pruebas con interfaz web, para poder
+#                   demostrar el envío de correos (entrevista / revisión /
+#                   rechazo) SIN necesitar credenciales de Gmail reales.
+#                   Ver README.md, sección "Correos con Mailpit".
+#
+# Todas las variables sensibles (usuarios, contraseñas, claves) viven en un
+# archivo .env que NO se sube a control de versiones (ver .env.example para
+# la plantilla). Docker Compose las inyecta automáticamente si el archivo
+# .env está en la misma carpeta que este docker-compose.yml.
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # Base de datos de n8n
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: reclutamiento_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${GENERIC_TIMEZONE}
+    volumes:
+      # Volumen nombrado y persistente: los datos sobreviven a
+      # "docker compose down" (solo se pierden con "docker compose down -v").
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # n8n depende de que Postgres esté LISTO (no solo "arrancado") antes de
+      # conectarse. pg_isready verifica que el motor acepta conexiones.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - red_reclutamiento
+
+  # ----------------------------------------------------------------------------
+  # Motor de automatización n8n (auto-hospedado)
+  # ----------------------------------------------------------------------------
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: reclutamiento_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678" # interfaz web de n8n -> http://localhost:5678
+    environment:
+      # --- Conexión a la base de datos Postgres (en vez de SQLite) ---
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # --- Clave de cifrado de credenciales guardadas en n8n ---
+      # Si se pierde o se cambia, las credenciales guardadas quedan
+      # ilegibles: usar SIEMPRE el mismo valor entre reinicios.
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+
+      # --- Host, protocolo y URL pública (usados para construir la URL del
+      # Form Trigger / webhook que se comparte con los postulantes) ---
+      N8N_HOST: ${N8N_HOST}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: ${WEBHOOK_URL}
+
+      # --- Zona horaria del Ecuador continental, usada para el Wait node
+      # (3 días antes del correo de rechazo) y para las marcas de tiempo
+      # de consentimiento LOPDP ---
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+      TZ: ${GENERIC_TIMEZONE}
+    volumes:
+      # Persiste workflows, credenciales cifradas y configuración de n8n.
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - red_reclutamiento
+
+  # ----------------------------------------------------------------------------
+  # Mailpit: servidor SMTP de pruebas + interfaz web para demostrar correos
+  # sin usar una cuenta de Gmail real. Ver README.md.
+  # ----------------------------------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: reclutamiento_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # interfaz web -> http://localhost:8025 (ver correos recibidos)
+      - "1025:1025" # servidor SMTP -> usado por el nodo "Send Email" de n8n
+    environment:
+      TZ: ${GENERIC_TIMEZONE}
+    networks:
+      - red_reclutamiento
+
+# ==============================================================================
+# Volúmenes persistentes (named volumes gestionados por Docker)
+# ==============================================================================
+volumes:
+  postgres_data:
+  n8n_data:
+
+# ==============================================================================
+# Red interna: permite que los 3 contenedores se resuelvan por nombre de
+# servicio (ej. n8n se conecta a "postgres:5432" y a "mailpit:1025").
+# ==============================================================================
+networks:
+  red_reclutamiento:
+    driver: bridge

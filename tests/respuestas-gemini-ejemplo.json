@@ -1,0 +1,46 @@
+[
+  {
+    "_descripcion": "Respuesta CORRECTA: candidates[0].content.parts[0].text trae el JSON de extracción, finishReason STOP",
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"datos_identidad\":{\"nombre\":\"María Fernanda Torres\",\"email\":\"maria.torres@example.com\",\"telefono\":\"+593987654321\"},\"datos_evaluables\":{\"anios_experiencia\":6,\"skills_tecnicas\":[\"Node.js\",\"JavaScript\",\"SQL\",\"Docker\",\"TypeScript\"],\"idiomas\":[{\"idioma\":\"Inglés\",\"nivel\":\"C1\"}],\"nivel_educativo\":\"cuarto_nivel\"},\"datos_contexto\":{\"resumen_profesional\":\"Desarrolladora backend senior con 6 años de experiencia en Node.js.\"}}"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": { "promptTokenCount": 512, "candidatesTokenCount": 180, "totalTokenCount": 692 },
+    "modelVersion": "COMPLETAR"
+  },
+  {
+    "_descripcion": "Respuesta con ERROR de la API (ej. API key inválida): campo \"error\" en la raíz, sin \"candidates\"",
+    "error": {
+      "code": 400,
+      "message": "API key not valid. Please pass a valid API key.",
+      "status": "INVALID_ARGUMENT"
+    }
+  },
+  {
+    "_descripcion": "Respuesta TRUNCADA: finishReason distinto de STOP (se alcanzó el límite de tokens de salida)",
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            { "text": "{\"datos_identidad\":{\"nombre\":\"Carlos And" }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": { "promptTokenCount": 512, "candidatesTokenCount": 8192, "totalTokenCount": 8704 },
+    "modelVersion": "COMPLETAR"
+  }
+]

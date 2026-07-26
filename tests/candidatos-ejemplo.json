@@ -1,0 +1,78 @@
+[
+  {
+    "_descripcion_caso_prueba": "Candidato EXCELENTE: se espera score > 85 (ENTREVISTA)",
+    "puesto": "Desarrollador Backend Node.js",
+    "datos_identidad": {
+      "nombre": "María Fernanda Torres",
+      "email": "maria.torres@example.com",
+      "telefono": "+593987654321"
+    },
+    "datos_evaluables": {
+      "anios_experiencia": 6,
+      "skills_tecnicas": ["Node.js", "JavaScript", "SQL", "Docker", "TypeScript"],
+      "idiomas": [
+        { "idioma": "Inglés", "nivel": "C1" }
+      ],
+      "nivel_educativo": "cuarto_nivel"
+    },
+    "datos_contexto": {
+      "resumen_profesional": "Desarrolladora backend senior con 6 años de experiencia en Node.js y arquitecturas de microservicios."
+    }
+  },
+  {
+    "_descripcion_caso_prueba": "Candidato INTERMEDIO: se espera score entre 50 y 84 (REVISION)",
+    "puesto": "Desarrollador Backend Node.js",
+    "datos_identidad": {
+      "nombre": "Carlos Andrés Pérez",
+      "email": "carlos.perez@example.com",
+      "telefono": "+593998765432"
+    },
+    "datos_evaluables": {
+      "anios_experiencia": 3,
+      "skills_tecnicas": ["Node.js", "JavaScript", "Docker"],
+      "idiomas": [
+        { "idioma": "Inglés", "nivel": "B1" }
+      ],
+      "nivel_educativo": "tecnico_tecnologo"
+    },
+    "datos_contexto": {
+      "resumen_profesional": "Desarrollador con 3 años de experiencia en backend, conocimientos intermedios de inglés."
+    }
+  },
+  {
+    "_descripcion_caso_prueba": "Candidato BAJO: se espera score < 50 (RECHAZO)",
+    "puesto": "Desarrollador Backend Node.js",
+    "datos_identidad": {
+      "nombre": "Luis Alberto Sánchez",
+      "email": "luis.sanchez@example.com",
+      "telefono": "+593912345678"
+    },
+    "datos_evaluables": {
+      "anios_experiencia": 1,
+      "skills_tecnicas": ["Node.js"],
+      "idiomas": [],
+      "nivel_educativo": "bachillerato"
+    },
+    "datos_contexto": {
+      "resumen_profesional": "Recién egresado con conocimientos básicos de programación."
+    }
+  },
+  {
+    "_descripcion_caso_prueba": "Candidato con CAMPOS NULOS: prueba de robustez ante datos faltantes en el CV",
+    "puesto": "Desarrollador Backend Node.js",
+    "datos_identidad": {
+      "nombre": "Andrea Vintimilla",
+      "email": "andrea.vintimilla@example.com",
+      "telefono": null
+    },
+    "datos_evaluables": {
+      "anios_experiencia": null,
+      "skills_tecnicas": null,
+      "idiomas": null,
+      "nivel_educativo": null
+    },
+    "datos_contexto": {
+      "resumen_profesional": null
+    }
+  }
+]
